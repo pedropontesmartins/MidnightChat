@@ -17,16 +17,16 @@
                 extend: {
                     colors: {
                         lofi: {
-                            bg: '#090D16',
-                            card: '#111827',
-                            panel: '#1F2937',
-                            border: '#374151',
-                            muted: '#6B7280',
-                            light: '#E5E7EB',
-                            green: '#10B981',
-                            neon: '#34D399',
-                            emerald: '#059669',
-                            accent: '#059669'
+                            bg: 'rgb(var(--lofi-bg) / <alpha-value>)',
+                            card: 'rgb(var(--lofi-card) / <alpha-value>)',
+                            panel: 'rgb(var(--lofi-panel) / <alpha-value>)',
+                            border: 'rgb(var(--lofi-border) / <alpha-value>)',
+                            muted: 'rgb(var(--lofi-muted) / <alpha-value>)',
+                            light: 'rgb(var(--lofi-light) / <alpha-value>)',
+                            green: 'rgb(var(--lofi-green) / <alpha-value>)',
+                            neon: 'rgb(var(--lofi-neon) / <alpha-value>)',
+                            emerald: 'rgb(var(--lofi-emerald) / <alpha-value>)',
+                            accent: 'rgb(var(--lofi-accent) / <alpha-value>)'
                         }
                     },
                     fontFamily: {
@@ -41,18 +41,44 @@
 
     <style>
         :root {
-            --bg-dark: #090D16;
-            --card-dark: #111827;
-            --neon-green: #34D399;
+            --lofi-bg: 9 13 22;
+            --lofi-card: 17 24 39;
+            --lofi-panel: 31 41 55;
+            --lofi-border: 55 65 81;
+            --lofi-muted: 107 114 128;
+            --lofi-light: 229 231 235;
+            --lofi-green: 16 185 129;
+            --lofi-neon: 52 211 153;
+            --lofi-emerald: 5 150 105;
+            --lofi-accent: 5 150 105;
+            --bg-dark: rgb(var(--lofi-bg));
+            --card-dark: rgb(var(--lofi-card));
+            --neon-green: rgb(var(--lofi-neon));
             --text-glow: 0 0 10px rgba(52, 211, 153, 0.35);
             --box-glow: 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+
+        html.light {
+            --lofi-bg: 244 247 245;
+            --lofi-card: 255 255 255;
+            --lofi-panel: 232 240 235;
+            --lofi-border: 188 204 193;
+            --lofi-muted: 82 99 88;
+            --lofi-light: 28 43 34;
+            --lofi-green: 5 150 105;
+            --lofi-neon: 4 120 87;
+            --lofi-emerald: 4 120 87;
+            --lofi-accent: 4 120 87;
+            --text-glow: none;
+            --box-glow: 0 0 20px rgba(5, 150, 105, 0.12);
         }
 
         body {
             font-family: 'Space Grotesk', sans-serif;
             background-color: var(--bg-dark);
-            color: #E5E7EB;
+            color: rgb(var(--lofi-light));
             overflow-x: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         /* CRT Scanlines Effect */
@@ -77,14 +103,29 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #090D16;
+            background: var(--bg-dark);
         }
         ::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: rgb(var(--lofi-border));
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #10B981;
+            background: rgb(var(--lofi-green));
+        }
+
+        html.light .chat-content code {
+            background-color: rgb(var(--lofi-panel));
+            color: rgb(var(--lofi-neon));
+            border-color: rgb(var(--lofi-border));
+        }
+
+        html.light .chat-content pre {
+            background-color: rgb(var(--lofi-bg));
+            border-color: rgb(var(--lofi-border));
+        }
+
+        html.light .chat-content pre code {
+            color: rgb(var(--lofi-light));
         }
 
         .text-glow {
@@ -159,6 +200,54 @@
             font-style: italic;
             margin: 8px 0;
         }
+
+        .cassette-reel {
+            background: conic-gradient(#cbd5e1 0 12%, #64748b 12% 25%, #e2e8f0 25% 38%, #64748b 38% 50%, #cbd5e1 50% 62%, #64748b 62% 75%, #e2e8f0 75% 88%, #64748b 88% 100%);
+            animation: cassette-spin 1.15s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .cassette-reel:last-child {
+            animation-duration: 1.65s;
+        }
+
+        .cassette-playing .cassette-reel {
+            animation-play-state: running;
+        }
+
+        @keyframes cassette-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .cassette-tape {
+            background: linear-gradient(145deg, #273238, #11181d 55%, #334047);
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18), 0 12px 25px rgba(0, 0, 0, 0.28);
+        }
+
+        html.light .cassette-tape {
+            background: linear-gradient(145deg, #dce9e0, #aebfb4 55%, #edf5ef);
+        }
+
+        .cassette-panel {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .cassette-panel.is-collapsed {
+            transform: translateX(calc(100% - 3.25rem));
+        }
+
+        @media (max-width: 640px) {
+            .cassette-panel {
+                top: auto;
+                bottom: 1rem;
+                right: 0.75rem;
+            }
+
+            .cassette-panel.is-collapsed {
+                transform: translateX(calc(100% - 3rem));
+            }
+        }
     </style>
 </head>
 <body class="h-full flex flex-col justify-between relative bg-lofi-bg text-lofi-light">
@@ -204,6 +293,11 @@
                     <i data-lucide="monitor" class="w-4 h-4"></i>
                 </button>
 
+                <!-- Light/Dark Theme Toggle -->
+                <button id="btnToggleTheme" class="p-2 rounded-lg bg-lofi-panel hover:bg-lofi-border border border-lofi-border text-lofi-muted hover:text-lofi-neon transition-all" title="Alternar tema claro/escuro" aria-label="Alternar tema claro/escuro">
+                    <i id="themeIcon" data-lucide="sun" class="w-4 h-4"></i>
+                </button>
+
                 <!-- GitHub Hosting Guide -->
                 <button id="btnGuideModal" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-lofi-emerald/20 hover:bg-lofi-emerald/30 border border-lofi-green/40 text-lofi-neon font-medium transition-all">
                     <i data-lucide="github" class="w-4 h-4"></i>
@@ -247,10 +341,10 @@
                         <span class="text-[10px] text-lofi-muted font-mono">online</span>
                     </div>
                     <p class="leading-relaxed">
-                        Falaaa meu nobre! ☕️✨ Puxa uma cadeira e pega seu café/chá. Seja bem-vindo ao MidnightChat!
+                        Bem vindo DEV, ☕️✨ Puxa uma cadeira e pega seu café/chá. Chega mais pro nosso MidnightChat!
                     </p>
                     <p class="leading-relaxed">
-                        Eu sou seu companheiro digital em IA. Estou programado pra ser ultra bem-humorado, absurdamente inteligente e te explicar qualquer assunto espinhoso da forma mais genial e didática possível!
+                        Eu sou seu companheiro digital em IA. Estou programado pra ser ultra bem-humorado e desenvolver as teorias mais malucas sobre café, pizza de abacaxi e programação de madrugada. 😎💻
                     </p>
                     <p class="text-xs text-lofi-neon font-mono pt-1">
                         👉 Dica: Clica numa das sugestões no carrossel animado ou digita sua dúvida abaixo!
@@ -331,6 +425,45 @@
         </div>
 
     </main>
+
+    <!-- Retractable Cassette Player -->
+    <aside id="cassettePanel" class="cassette-panel fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-stretch is-collapsed" aria-label="Toca fitas Midnight Mix vol.1">
+        <button id="btnToggleCassette" class="w-12 shrink-0 rounded-l-xl bg-lofi-panel border border-r-0 border-lofi-border text-lofi-neon hover:bg-lofi-border transition-colors" title="Abrir toca-fitas" aria-label="Abrir toca-fitas" aria-expanded="false">
+            <i id="cassetteToggleIcon" data-lucide="chevron-left" class="w-5 h-5 mx-auto"></i>
+        </button>
+        <div class="w-64 p-4 rounded-l-none rounded-r-2xl bg-lofi-card border border-lofi-border shadow-2xl backdrop-blur-md">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <div>
+                    <p class="font-pixel text-xl text-lofi-neon text-glow leading-none">MIDNIGHT MIX</p>
+                    <p class="text-[10px] text-lofi-muted font-mono mt-1">vol.1 • lo-fi signal</p>
+                </div>
+                <i data-lucide="cassette-tape" class="w-5 h-5 text-lofi-green"></i>
+            </div>
+            <div id="cassetteBody" class="cassette-tape rounded-lg p-3 border border-slate-500/30">
+                <div class="flex items-center justify-between px-2 py-1 mb-3 bg-black/20 rounded text-[9px] text-emerald-300 font-mono tracking-widest">
+                    <span>MN-001</span>
+                    <span id="cassetteDuration">45:00</span>
+                </div>
+                <div class="flex items-center justify-center gap-7 py-2">
+                    <div class="cassette-reel w-12 h-12 rounded-full bg-slate-300 border-4 border-slate-500 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-400"></div>
+                    </div>
+                    <div class="cassette-reel w-12 h-12 rounded-full bg-slate-300 border-4 border-slate-500 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-400"></div>
+                    </div>
+                </div>
+                <div class="h-1.5 mx-3 mt-3 rounded-full bg-black/40 overflow-hidden">
+                    <div id="cassetteProgress" class="h-full w-0 rounded-full bg-lofi-neon transition-[width] duration-200"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between mt-3">
+                <span id="cassetteStatus" class="text-[11px] text-lofi-muted font-mono"><span id="cassetteElapsed">00:00</span> / <span>45:00</span></span>
+                <button id="btnCassettePlay" class="w-9 h-9 rounded-full bg-lofi-green hover:bg-lofi-neon text-black flex items-center justify-center transition-colors" title="Tocar Midnight Mix vol.1" aria-label="Tocar Midnight Mix vol.1">
+                    <i id="cassettePlayIcon" data-lucide="play" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
 
     <!-- Modal: API Key Configuration -->
     <div id="modalKey" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -436,6 +569,12 @@
         let audioContext = null;
         let noiseNode = null;
         let gainNode = null;
+        const cassetteDuration = 45 * 60;
+        let cassetteElapsed = 0;
+        let cassetteStartedAt = 0;
+        let cassetteTimer = null;
+        const savedTheme = localStorage.getItem('MIDNIGHTCHAT_THEME');
+        if (savedTheme === 'light') document.documentElement.classList.add('light');
 
         // Expanded Prompt Chip Items List
         const promptChips = [
@@ -466,6 +605,16 @@
         const typingIndicator = document.getElementById('typingIndicator');
         const apiKeyBanner = document.getElementById('apiKeyBanner');
         const crtOverlay = document.getElementById('crtOverlay');
+        const btnToggleTheme = document.getElementById('btnToggleTheme');
+        const themeIcon = document.getElementById('themeIcon');
+        const cassettePanel = document.getElementById('cassettePanel');
+        const btnToggleCassette = document.getElementById('btnToggleCassette');
+        const cassetteToggleIcon = document.getElementById('cassetteToggleIcon');
+        const btnCassettePlay = document.getElementById('btnCassettePlay');
+        const cassettePlayIcon = document.getElementById('cassettePlayIcon');
+        const cassetteStatus = document.getElementById('cassetteStatus');
+        const cassetteElapsedLabel = document.getElementById('cassetteElapsed');
+        const cassetteProgress = document.getElementById('cassetteProgress');
         
         // Modals
         const modalKey = document.getElementById('modalKey');
@@ -484,6 +633,7 @@
         // Initial setup on DOM ready
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            updateThemeIcon();
             checkApiKeyStatus();
             initCarousel();
 
@@ -505,6 +655,20 @@
                 `;
             };
             marked.setOptions({ renderer: renderer });
+        });
+
+        function updateThemeIcon() {
+            const isLight = document.documentElement.classList.contains('light');
+            themeIcon.setAttribute('data-lucide', isLight ? 'moon' : 'sun');
+            btnToggleTheme.title = isLight ? 'Alternar para tema escuro' : 'Alternar para tema claro';
+            btnToggleTheme.setAttribute('aria-label', btnToggleTheme.title);
+            lucide.createIcons();
+        }
+
+        btnToggleTheme.addEventListener('click', () => {
+            const isLight = document.documentElement.classList.toggle('light');
+            localStorage.setItem('MIDNIGHTCHAT_THEME', isLight ? 'light' : 'dark');
+            updateThemeIcon();
         });
 
         // Fixed Persona System Instructions for MidnightChat
@@ -742,33 +906,104 @@ Sua Personalidade e Tom de Voz:
             }
         });
 
-        document.getElementById('btnToggleAudio').addEventListener('click', () => {
+        function updateAudioControls() {
             const label = document.getElementById('audioLabel');
             const icon = document.getElementById('audioIcon');
+            const cassetteIsOpen = !cassettePanel.classList.contains('is-collapsed');
 
-            if (!isAudioPlaying) {
-                initLoFiSynth();
-                isAudioPlaying = true;
+            if (isAudioPlaying) {
                 label.textContent = "Lo-Fi Ambient: On ☕";
                 label.classList.replace('text-lofi-muted', 'text-lofi-neon');
                 icon.classList.add('animate-vinyl', 'text-lofi-neon');
                 icon.classList.remove('text-lofi-muted');
+                cassettePanel.classList.add('cassette-playing');
+                cassettePlayIcon.setAttribute('data-lucide', 'pause');
+                btnCassettePlay.title = 'Pausar Midnight Mix vol.1';
             } else {
-                stopLoFiSynth();
-                isAudioPlaying = false;
                 label.textContent = "Lo-Fi Ambient: Off";
                 label.classList.replace('text-lofi-neon', 'text-lofi-muted');
                 icon.classList.remove('animate-vinyl', 'text-lofi-neon');
                 icon.classList.add('text-lofi-muted');
+                cassettePanel.classList.remove('cassette-playing');
+                cassettePlayIcon.setAttribute('data-lucide', 'play');
+                btnCassettePlay.title = 'Tocar Midnight Mix vol.1';
             }
+            btnCassettePlay.setAttribute('aria-label', btnCassettePlay.title);
+            updateCassetteProgress();
+            lucide.createIcons();
+        }
+
+        function formatCassetteTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        function getCurrentCassetteTime() {
+            if (!isAudioPlaying) return cassetteElapsed;
+            return Math.min(cassetteDuration, cassetteElapsed + (performance.now() - cassetteStartedAt) / 1000);
+        }
+
+        function updateCassetteProgress() {
+            const currentTime = getCurrentCassetteTime();
+            cassetteElapsedLabel.textContent = formatCassetteTime(currentTime);
+            cassetteProgress.style.width = `${(currentTime / cassetteDuration) * 100}%`;
+        }
+
+        function startCassetteClock() {
+            cassetteStartedAt = performance.now();
+            clearInterval(cassetteTimer);
+            cassetteTimer = setInterval(() => {
+                if (getCurrentCassetteTime() >= cassetteDuration) {
+                    cassetteElapsed = cassetteDuration;
+                    toggleAudio();
+                    return;
+                }
+                updateCassetteProgress();
+            }, 250);
+        }
+
+        function pauseCassetteClock() {
+            cassetteElapsed = getCurrentCassetteTime();
+            clearInterval(cassetteTimer);
+            cassetteTimer = null;
+        }
+
+        function toggleAudio() {
+            if (!isAudioPlaying) {
+                if (cassetteElapsed >= cassetteDuration) cassetteElapsed = 0;
+                initLoFiSynth();
+                isAudioPlaying = true;
+                startCassetteClock();
+            } else {
+                pauseCassetteClock();
+                if (audioContext && audioContext.state === 'running') {
+                    audioContext.suspend();
+                }
+                isAudioPlaying = false;
+            }
+            updateAudioControls();
+        }
+
+        document.getElementById('btnToggleAudio').addEventListener('click', toggleAudio);
+        btnCassettePlay.addEventListener('click', toggleAudio);
+
+        btnToggleCassette.addEventListener('click', () => {
+            const isCollapsed = cassettePanel.classList.toggle('is-collapsed');
+            btnToggleCassette.setAttribute('aria-expanded', String(!isCollapsed));
+            btnToggleCassette.title = isCollapsed ? 'Abrir toca-fitas' : 'Recolher toca-fitas';
+            cassetteToggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-left' : 'chevron-right');
+            lucide.createIcons();
         });
 
         function initLoFiSynth() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
+            } else {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                return;
             }
 
             const bufferSize = audioContext.sampleRate * 2;
