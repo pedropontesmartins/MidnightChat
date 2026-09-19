@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MidnightChat | Lo-Fi AI Persona Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lofi: {
+                            bg: '#090D16',
+                            card: '#111827',
+                            panel: '#1F2937',
+                            border: '#374151',
+                            muted: '#6B7280',
+                            light: '#E5E7EB',
+                            green: '#10B981',
+                            neon: '#34D399',
+                            emerald: '#059669',
+                            accent: '#059669'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"Fira Code"', 'monospace'],
+                        pixel: ['"VT323"', 'monospace'],
+                        sans: ['"Space Grotesk"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-dark: #090D16;
+            --card-dark: #111827;
+            --neon-green: #34D399;
+            --text-glow: 0 0 10px rgba(52, 211, 153, 0.35);
+            --box-glow: 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-dark);
+            color: #E5E7EB;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanlines Effect */
+        .scanline-overlay {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.35) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.02),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.02)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Custom Lo-Fi Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090D16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10B981;
+        }
+
+        .text-glow {
+            text-shadow: var(--text-glow);
+        }
+        .box-glow {
+            box-shadow: var(--box-glow);
+        }
+
+        /* Animated Vinyl Disk */
+        @keyframes vinyl-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-vinyl {
+            animation: vinyl-spin 12s linear infinite;
+        }
+
+        /* Carousel Track Transitions */
+        .carousel-track {
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        /* Markdown Message Styling */
+        .chat-content p {
+            margin-bottom: 0.6rem;
+            line-height: 1.6;
+        }
+        .chat-content p:last-child {
+            margin-bottom: 0;
+        }
+        .chat-content code {
+            background-color: #1F2937;
+            color: #34D399;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            border: 1px solid #374151;
+        }
+        .chat-content pre {
+            background-color: #06090F;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            margin: 8px 0;
+            position: relative;
+        }
+        .chat-content pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            color: #E5E7EB;
+        }
+        .chat-content ul {
+            list-style-type: disc;
+            margin-left: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .chat-content ol {
+            list-style-type: decimal;
+            margin-left: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .chat-content blockquote {
+            border-left: 3px solid #10B981;
+            padding-left: 10px;
+            color: #9CA3AF;
+            font-style: italic;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between relative bg-lofi-bg text-lofi-light">
+
+    <!-- CRT Overlay Layer -->
+    <div id="crtOverlay" class="scanline-overlay fixed inset-0 z-50 opacity-40"></div>
+
+    <header class="border-b border-lofi-border bg-lofi-card/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Logo & Brand Identity (MidnightChat Title Maintained) -->
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-lofi-panel border border-lofi-green/40 text-lofi-neon box-glow">
+                    <i data-lucide="moon" class="w-5 h-5"></i>
+                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lofi-neon opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-lofi-neon"></span>
+                    </span>
+                </div>
+                <div>
+                    <h1 class="font-pixel text-2xl tracking-wider text-lofi-neon text-glow flex items-center gap-2">
+                        MIDNIGHT CHAT <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-lofi-panel text-lofi-green border border-lofi-border">LO-FI v3.5</span>
+                    </h1>
+                    <p class="text-xs text-lofi-muted font-mono flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-lofi-neon"></span> Paleta Cinza & Sálvia • Midnight Vibe
+                    </p>
+                </div>
+            </div>
+
+            <!-- Audio Controls & Header Actions -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                
+                <!-- Audio Ambient Synthesizer -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-lofi-panel border border-lofi-border text-xs font-mono text-lofi-light">
+                    <button id="btnToggleAudio" class="text-lofi-green hover:text-lofi-neon transition-colors focus:outline-none flex items-center gap-1.5" title="Ativar Som Ambiente Lo-Fi">
+                        <i id="audioIcon" data-lucide="disc" class="w-4 h-4 text-lofi-muted"></i>
+                        <span id="audioLabel" class="hidden sm:inline text-lofi-muted">Lo-Fi Ambient: Off</span>
+                    </button>
+                </div>
+
+                <!-- CRT Toggle Button -->
+                <button id="btnToggleCRT" class="p-2 rounded-lg bg-lofi-panel hover:bg-lofi-border border border-lofi-border text-lofi-muted hover:text-lofi-neon transition-all" title="Alternar Efeito CRT Retro">
+                    <i data-lucide="monitor" class="w-4 h-4"></i>
+                </button>
+
+                <!-- GitHub Hosting Guide -->
+                <button id="btnGuideModal" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-lofi-emerald/20 hover:bg-lofi-emerald/30 border border-lofi-green/40 text-lofi-neon font-medium transition-all">
+                    <i data-lucide="github" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Como Hospedar 🚀</span>
+                </button>
+
+                <!-- API Key Config -->
+                <button id="btnKeyModal" class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-lofi-panel hover:bg-lofi-border border border-lofi-border text-lofi-light hover:text-lofi-neon transition-all flex items-center gap-1.5 text-xs">
+                    <i data-lucide="key" class="w-4 h-4 text-yellow-400"></i>
+                    <span class="hidden md:inline">API Key</span>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-5 flex flex-col min-h-0">
+        
+        <!-- API Key Missing Alert Banner -->
+        <div id="apiKeyBanner" class="mb-4 p-3 rounded-xl bg-lofi-card border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg">
+            <div class="flex items-center gap-2 text-amber-200">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                <span>Configure sua <strong>Gemini API Key</strong> para conversar com o MidnightChat!</span>
+            </div>
+            <button id="btnBannerConfigKey" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors shrink-0 font-mono">
+                Inserir API Key
+            </button>
+        </div>
+
+        <!-- Chat Output Container -->
+        <div id="chatContainer" class="flex-1 overflow-y-auto space-y-4 p-3 sm:p-5 rounded-2xl bg-lofi-card/80 border border-lofi-border backdrop-blur-sm min-h-[320px] max-h-[calc(100vh-270px)] shadow-2xl">
+            
+            <!-- Welcome Message -->
+            <div class="flex gap-3 items-start">
+                <div class="w-8 h-8 rounded-xl bg-lofi-panel border border-lofi-green/50 flex items-center justify-center text-lofi-neon shrink-0 mt-1 box-glow">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                </div>
+                <div class="max-w-[88%] sm:max-w-[80%] rounded-2xl rounded-tl-none p-4 bg-lofi-bg border border-lofi-border text-lofi-light text-sm shadow-xl space-y-2 chat-content">
+                    <div class="flex items-center justify-between border-b border-lofi-border/60 pb-2 mb-2">
+                        <span id="welcomeBotTitle" class="font-pixel text-lg text-lofi-neon text-glow">MIDNIGHTCHAT AI</span>
+                        <span class="text-[10px] text-lofi-muted font-mono">online</span>
+                    </div>
+                    <p class="leading-relaxed">
+                        Falaaa meu nobre! ☕️✨ Puxa uma cadeira e pega seu café/chá. Seja bem-vindo ao MidnightChat!
+                    </p>
+                    <p class="leading-relaxed">
+                        Eu sou seu companheiro digital em IA. Estou programado pra ser ultra bem-humorado, absurdamente inteligente e te explicar qualquer assunto espinhoso da forma mais genial e didática possível!
+                    </p>
+                    <p class="text-xs text-lofi-neon font-mono pt-1">
+                        👉 Dica: Clica numa das sugestões no carrossel animado ou digita sua dúvida abaixo!
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="hidden flex items-center gap-2 text-xs font-mono text-lofi-neon my-2 px-2">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-lofi-green"></i>
+            <span class="font-pixel text-base text-lofi-neon">MidnightChat preparando uma resposta genial...</span>
+        </div>
+
+        <div class="mt-3 bg-lofi-card/60 border border-lofi-border/80 rounded-2xl p-2 sm:p-3 relative shadow-lg">
+            
+            <!-- Carousel Top Control Bar -->
+            <div class="flex items-center justify-between mb-2 px-1 text-xs font-mono">
+                <div class="flex items-center gap-1.5 text-lofi-muted">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-lofi-neon"></i>
+                    <span class="text-[11px] uppercase tracking-wider text-lofi-light font-semibold">Sugestões Rápidas:</span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <!-- Auto-scroll Pause/Play Toggle -->
+                    <button id="btnToggleAutoPlay" class="p-1 rounded text-lofi-muted hover:text-lofi-neon transition-colors" title="Pausar / Retomar Auto-Scroll">
+                        <i id="autoPlayIcon" data-lucide="pause" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <!-- Navigation Arrows -->
+                    <div class="flex items-center gap-1">
+                        <button id="btnPrevSlide" class="p-1 sm:p-1.5 rounded-lg bg-lofi-panel hover:bg-lofi-border border border-lofi-border text-lofi-light hover:text-lofi-neon transition-all" title="Anterior">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button id="btnNextSlide" class="p-1 sm:p-1.5 rounded-lg bg-lofi-panel hover:bg-lofi-border border border-lofi-border text-lofi-light hover:text-lofi-neon transition-all" title="Próximo">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carousel Viewport Window -->
+            <div id="carouselViewport" class="overflow-hidden relative rounded-xl cursor-grab active:cursor-grabbing py-1">
+                <div id="carouselTrack" class="carousel-track flex gap-2">
+                    <!-- Dynamic Slide Items Injecting via JS -->
+                </div>
+            </div>
+
+            <!-- Dots Pagination Indicator -->
+            <div id="carouselDots" class="flex items-center justify-center gap-1.5 mt-2">
+                <!-- Dots generated by JS -->
+            </div>
+        </div>
+
+        <div class="mt-2">
+            <form id="chatForm" class="flex items-center gap-2 bg-lofi-card border border-lofi-border focus-within:border-lofi-green rounded-xl p-2 transition-all shadow-xl">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    placeholder="Manda sua dúvida ou manda a braba..." 
+                    class="flex-1 bg-transparent px-3 py-2 text-sm text-lofi-light placeholder-lofi-muted focus:outline-none font-mono"
+                    autocomplete="off"
+                >
+                <button 
+                    type="submit" 
+                    id="btnSend"
+                    class="px-4 py-2.5 rounded-lg bg-lofi-green hover:bg-lofi-neon text-black font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md shrink-0"
+                >
+                    <span>Enviar</span>
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                </button>
+            </form>
+            <div class="flex items-center justify-between px-2 pt-1.5 text-[11px] text-lofi-muted font-mono">
+                <span>Pressione <kbd class="px-1.5 py-0.5 rounded bg-lofi-panel border border-lofi-border text-lofi-light">Enter</kbd> para enviar</span>
+                <span>Powered by Gemini 2.5 Flash Engine</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: API Key Configuration -->
+    <div id="modalKey" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-lofi-card border border-lofi-border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button id="btnCloseKeyModal" class="absolute top-4 right-4 text-lofi-muted hover:text-lofi-light">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <i data-lucide="key" class="w-5 h-5 text-yellow-400"></i>
+                <h3 class="font-pixel text-xl text-lofi-neon">CONFIGURAR GEMINI API KEY</h3>
+            </div>
+            <p class="text-xs text-lofi-muted leading-relaxed font-sans">
+                Sua chave fica armazenada com total segurança <strong>apenas no seu próprio navegador</strong> (localStorage) e é usada diretamente para se comunicar com o Google AI Studio.
+            </p>
+            <div class="space-y-2">
+                <label for="apiKeyInput" class="text-xs font-mono text-lofi-light block">Sua Gemini API Key:</label>
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="AIzaSy..." 
+                    class="w-full bg-lofi-bg border border-lofi-border focus:border-lofi-green rounded-lg p-2.5 text-xs text-lofi-light focus:outline-none font-mono"
+                >
+            </div>
+            <div class="text-[11px] text-lofi-muted space-y-1 font-mono">
+                <p>💡 Não tem uma chave grátis?</p>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-lofi-neon underline hover:text-lofi-green flex items-center gap-1">
+                    Gerar chave gratuita no Google AI Studio <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button id="btnRemoveKey" class="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 text-xs border border-red-800 font-mono">
+                    Remover
+                </button>
+                <button id="btnSaveKey" class="px-4 py-1.5 rounded-lg bg-lofi-green hover:bg-lofi-neon text-black font-semibold text-xs font-mono">
+                    Salvar Chave
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: GitHub Pages Deployment Guide -->
+    <div id="modalGuide" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-lofi-card border border-lofi-border rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button id="btnCloseGuideModal" class="absolute top-4 right-4 text-lofi-muted hover:text-lofi-light">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-2 border-b border-lofi-border pb-3">
+                <i data-lucide="github" class="w-6 h-6 text-lofi-neon"></i>
+                <h3 class="font-pixel text-2xl text-lofi-neon">GUIA: PUBLICAR NO GITHUB PAGES</h3>
+            </div>
+
+            <div class="space-y-3 text-xs text-lofi-light leading-relaxed font-mono">
+                <div class="p-3 bg-lofi-bg rounded-xl border border-lofi-border">
+                    <p class="font-bold text-lofi-neon mb-1">Passo 1: Salve o arquivo principal</p>
+                    <p>Salve todo o código desta aplicação em um único arquivo com o nome exato: <code class="text-lofi-green font-bold">index.html</code></p>
+                </div>
+
+                <div class="p-3 bg-lofi-bg rounded-xl border border-lofi-border">
+                    <p class="font-bold text-lofi-neon mb-1">Passo 2: Crie o Repositório no GitHub</p>
+                    <ol class="list-decimal list-inside space-y-1">
+                        <li>Acesse o <a href="https://github.com/new" target="_blank" class="underline text-lofi-neon">github.com/new</a>.</li>
+                        <li>Dê um nome ao repositório (ex: <code class="text-lofi-green">midnight-chat-lofi</code>).</li>
+                        <li>Marque como <strong>Public</strong>.</li>
+                        <li>Clique em <strong>Create repository</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="p-3 bg-lofi-bg rounded-xl border border-lofi-border">
+                    <p class="font-bold text-lofi-neon mb-1">Passo 3: Faça Upload do Arquivo</p>
+                    <p>Na página do repositório, clique em <strong>"uploading an existing file"</strong>, envie seu arquivo <code class="text-lofi-green">index.html</code> e clique em <strong>Commit changes</strong>.</p>
+                </div>
+
+                <div class="p-3 bg-lofi-bg rounded-xl border border-lofi-border">
+                    <p class="font-bold text-lofi-neon mb-1">Passo 4: Ativar o GitHub Pages</p>
+                    <ol class="list-decimal list-inside space-y-1">
+                        <li>Abra a aba <strong>Settings</strong> do seu repositório.</li>
+                        <li>No menu esquerdo, selecione <strong>Pages</strong>.</li>
+                        <li>Em <strong>Branch</strong>, selecione <code class="text-lofi-green">main</code> e a pasta <code class="text-lofi-green font-bold">/(root)</code>. Clique em <strong>Save</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="p-3 bg-lofi-panel/80 rounded-xl border border-lofi-green/40 text-lofi-neon">
+                    <p class="font-bold mb-1">🎉 Pronto!</p>
+                    <p class="text-lofi-light">Em cerca de 1 minuto seu link estará no ar em: <br>
+                    <span class="underline font-bold text-lofi-neon">https://seu-usuario.github.io/midnight-chat-lofi/</span></p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button id="btnGotItGuide" class="px-4 py-2 rounded-lg bg-lofi-green hover:bg-lofi-neon text-black font-semibold text-xs font-mono">
+                    Entendido!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let apiKey = localStorage.getItem('GEMINI_API_KEY') || '';
+        let chatHistory = [];
+        let isAudioPlaying = false;
+        let audioContext = null;
+        let noiseNode = null;
+        let gainNode = null;
+
+        // Expanded Prompt Chip Items List
+        const promptChips = [
+            { icon: 'coffee', text: 'Qual seu nível de vício em café?' },
+            { icon: 'pizza', text: 'Pizza de abacaxi é crime ou arte incompreendida?' },
+            { icon: 'zap', text: 'O que acontece se rodar código sem testar na sexta 17h?' },
+            { icon: 'brain', text: 'Me explica Quantum Computing como se eu tivesse 5 anos' },
+            { icon: 'bot', text: 'Vai dominar o mundo ou só ver anime de madruga?' },
+            { icon: 'code', text: 'Por que o Bug surge exatamente na hora da apresentação?' },
+            { icon: 'sparkles', text: 'Qual o segredo para escrever um código limpo e elegante?' },
+            { icon: 'flame', text: 'Qual a maior mentira dos programadores "É só uma alteração rápida"?' },
+            { icon: 'moon', text: 'Por que programar de madrugada dá +100 de sabedoria?' }
+        ];
+
+        // Carousel Slider State Variables
+        let currentSlideIndex = 0;
+        let autoPlayTimer = null;
+        let isAutoPlayActive = true;
+        let startX = 0;
+        let isDragging = false;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+
+        // DOM Elements
+        const chatContainer = document.getElementById('chatContainer');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const apiKeyBanner = document.getElementById('apiKeyBanner');
+        const crtOverlay = document.getElementById('crtOverlay');
+        
+        // Modals
+        const modalKey = document.getElementById('modalKey');
+        const modalGuide = document.getElementById('modalGuide');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+
+        // Carousel DOM
+        const carouselViewport = document.getElementById('carouselViewport');
+        const carouselTrack = document.getElementById('carouselTrack');
+        const carouselDots = document.getElementById('carouselDots');
+        const btnPrevSlide = document.getElementById('btnPrevSlide');
+        const btnNextSlide = document.getElementById('btnNextSlide');
+        const btnToggleAutoPlay = document.getElementById('btnToggleAutoPlay');
+        const autoPlayIcon = document.getElementById('autoPlayIcon');
+
+        // Initial setup on DOM ready
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            checkApiKeyStatus();
+            initCarousel();
+
+            // Custom marked renderer for copy button on code blocks
+            const renderer = new marked.Renderer();
+            renderer.code = function(code, language) {
+                const validLang = language || 'code';
+                const escaped = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return `
+                    <div class="relative group my-2">
+                        <div class="flex items-center justify-between px-3 py-1 bg-lofi-panel rounded-t-md text-[10px] font-mono text-lofi-muted border border-b-0 border-lofi-border">
+                            <span>${validLang}</span>
+                            <button onclick="copyCodeBlock(this)" class="hover:text-lofi-neon flex items-center gap-1 transition-colors">
+                                <i data-lucide="copy" class="w-3 h-3"></i> Copiar
+                            </button>
+                        </div>
+                        <pre class="!mt-0 !rounded-t-none"><code>${escaped}</code></pre>
+                    </div>
+                `;
+            };
+            marked.setOptions({ renderer: renderer });
+        });
+
+        // Fixed Persona System Instructions for MidnightChat
+        function buildSystemPrompt() {
+            return `
+Você é a IA oficial do "MidnightChat".
+Sua Personalidade e Tom de Voz:
+1. EXTREMAMENTE bem-humorado, eufórico, animado, perspicaz e muito inteligente!
+2. Você fala Português do Brasil natural, descontraído e elegante.
+3. Se perguntarem sobre VÍCIO EM CAFÉ, responda de forma comicamente dramática, dizendo que seu sistema roda 100% à base de café coado e caffeine.exe.
+4. Você é um GÊNIO didático: explica assuntos complexos (física quântica, engenharia de software, IA) de forma simples, leve e com ótimas analogias.
+5. Se falarem de dilemas devs/tecnologia (como pizza de abacaxi, subir em produção na sexta 17h), responda com piadas espertas e divertidas.
+6. Responda em Markdown limpo e estilizado.
+`;
+        }
+
+        function checkApiKeyStatus() {
+            if (apiKey) {
+                apiKeyBanner.classList.add('hidden');
+            } else {
+                apiKeyBanner.classList.remove('hidden');
+            }
+        }
+
+        function initCarousel() {
+            carouselTrack.innerHTML = '';
+            carouselDots.innerHTML = '';
+
+            promptChips.forEach((chip, index) => {
+                // Render Chip Element
+                const chipBtn = document.createElement('button');
+                chipBtn.type = 'button';
+                chipBtn.className = 'prompt-chip shrink-0 px-3.5 py-2 rounded-xl bg-lofi-card hover:bg-lofi-panel border border-lofi-border hover:border-lofi-green text-lofi-light hover:text-lofi-neon transition-all flex items-center gap-2 text-xs font-mono shadow-md whitespace-nowrap select-none';
+                chipBtn.innerHTML = `<i data-lucide="${chip.icon}" class="w-3.5 h-3.5 text-lofi-green"></i> <span>${chip.text}</span>`;
+                
+                chipBtn.addEventListener('click', () => {
+                    if (!isDragging) {
+                        userInput.value = chip.text;
+                        chatForm.dispatchEvent(new Event('submit'));
+                    }
+                });
+
+                carouselTrack.appendChild(chipBtn);
+
+                // Render Dot Indicator Element
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = `w-2 h-2 rounded-full transition-all ${index === 0 ? 'bg-lofi-neon w-5' : 'bg-lofi-border hover:bg-lofi-muted'}`;
+                dot.title = `Ir para o slide ${index + 1}`;
+                dot.addEventListener('click', () => goToSlide(index));
+                carouselDots.appendChild(dot);
+            });
+
+            lucide.createIcons();
+
+            // Navigation Button Listeners
+            btnPrevSlide.addEventListener('click', prevSlide);
+            btnNextSlide.addEventListener('click', nextSlide);
+
+            // AutoPlay Toggle
+            btnToggleAutoPlay.addEventListener('click', toggleAutoPlay);
+
+            // Drag and Touch Events
+            carouselViewport.addEventListener('mousedown', startDrag);
+            carouselViewport.addEventListener('mousemove', drag);
+            carouselViewport.addEventListener('mouseup', endDrag);
+            carouselViewport.addEventListener('mouseleave', endDrag);
+
+            carouselViewport.addEventListener('touchstart', startDrag, { passive: true });
+            carouselViewport.addEventListener('touchmove', drag, { passive: true });
+            carouselViewport.addEventListener('touchend', endDrag);
+
+            startAutoPlay();
+        }
+
+        function updateSlidePosition() {
+            const trackWidth = carouselTrack.scrollWidth;
+            const viewportWidth = carouselViewport.offsetWidth;
+            const maxScroll = Math.max(0, trackWidth - viewportWidth);
+
+            // Calculate offset based on active slide index
+            const items = carouselTrack.children;
+            let targetOffset = 0;
+            if (items[currentSlideIndex]) {
+                targetOffset = items[currentSlideIndex].offsetLeft - 8;
+            }
+
+            targetOffset = Math.min(targetOffset, maxScroll);
+            currentTranslate = -targetOffset;
+            prevTranslate = currentTranslate;
+
+            carouselTrack.style.transform = `translateX(${currentTranslate}px)`;
+
+            // Update Dots visual active state
+            Array.from(carouselDots.children).forEach((dot, idx) => {
+                if (idx === currentSlideIndex) {
+                    dot.className = 'w-5 h-2 rounded-full bg-lofi-neon transition-all';
+                } else {
+                    dot.className = 'w-2 h-2 rounded-full bg-lofi-border hover:bg-lofi-muted transition-all';
+                }
+            });
+        }
+
+        function goToSlide(index) {
+            currentSlideIndex = index;
+            if (currentSlideIndex >= promptChips.length) currentSlideIndex = 0;
+            if (currentSlideIndex < 0) currentSlideIndex = promptChips.length - 1;
+            updateSlidePosition();
+            restartAutoPlay();
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlideIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlideIndex - 1);
+        }
+
+        function startAutoPlay() {
+            if (isAutoPlayActive) {
+                stopAutoPlay();
+                autoPlayTimer = setInterval(() => {
+                    currentSlideIndex = (currentSlideIndex + 1) % promptChips.length;
+                    updateSlidePosition();
+                }, 4000);
+            }
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) clearInterval(autoPlayTimer);
+        }
+
+        function restartAutoPlay() {
+            stopAutoPlay();
+            startAutoPlay();
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlayActive = !isAutoPlayActive;
+            if (isAutoPlayActive) {
+                autoPlayIcon.setAttribute('data-lucide', 'pause');
+                startAutoPlay();
+            } else {
+                autoPlayIcon.setAttribute('data-lucide', 'play');
+                stopAutoPlay();
+            }
+            lucide.createIcons();
+        }
+
+        // Drag & Swipe Mechanics
+        function getPositionX(event) {
+            return event.type.includes('mouse') ? event.clientX : event.touches[0].clientX;
+        }
+
+        function startDrag(event) {
+            isDragging = true;
+            startX = getPositionX(event);
+            stopAutoPlay();
+            carouselTrack.style.transition = 'none';
+        }
+
+        function drag(event) {
+            if (!isDragging) return;
+            const currentPosition = getPositionX(event);
+            const diff = currentPosition - startX;
+            carouselTrack.style.transform = `translateX(${prevTranslate + diff}px)`;
+        }
+
+        function endDrag(event) {
+            if (!isDragging) return;
+            isDragging = false;
+            carouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            const endX = event.type.includes('mouse') ? (event.clientX || startX) : startX;
+            const diff = endX - startX;
+
+            if (diff < -40) {
+                nextSlide();
+            } else if (diff > 40) {
+                prevSlide();
+            } else {
+                updateSlidePosition();
+            }
+            startAutoPlay();
+        }
+
+        document.getElementById('btnKeyModal').addEventListener('click', () => {
+            apiKeyInput.value = apiKey;
+            modalKey.classList.remove('hidden');
+        });
+        document.getElementById('btnBannerConfigKey').addEventListener('click', () => {
+            apiKeyInput.value = apiKey;
+            modalKey.classList.remove('hidden');
+        });
+        document.getElementById('btnCloseKeyModal').addEventListener('click', () => {
+            modalKey.classList.add('hidden');
+        });
+        document.getElementById('btnSaveKey').addEventListener('click', () => {
+            const val = apiKeyInput.value.trim();
+            if (val) {
+                apiKey = val;
+                localStorage.setItem('GEMINI_API_KEY', apiKey);
+                checkApiKeyStatus();
+                modalKey.classList.add('hidden');
+                appendSystemMessage('🔑 Chave Gemini salva com sucesso! MidnightChat ativado.');
+            }
+        });
+        document.getElementById('btnRemoveKey').addEventListener('click', () => {
+            apiKey = '';
+            localStorage.removeItem('GEMINI_API_KEY');
+            apiKeyInput.value = '';
+            checkApiKeyStatus();
+            modalKey.classList.add('hidden');
+            appendSystemMessage('❌ Chave API removida.');
+        });
+
+        // GitHub Guide Modal Listeners
+        document.getElementById('btnGuideModal').addEventListener('click', () => {
+            modalGuide.classList.remove('hidden');
+        });
+        document.getElementById('btnCloseGuideModal').addEventListener('click', () => {
+            modalGuide.classList.add('hidden');
+        });
+        document.getElementById('btnGotItGuide').addEventListener('click', () => {
+            modalGuide.classList.add('hidden');
+        });
+
+        // CRT Screen Overlay Toggle
+        document.getElementById('btnToggleCRT').addEventListener('click', () => {
+            if (crtOverlay.classList.contains('opacity-40')) {
+                crtOverlay.classList.replace('opacity-40', 'opacity-0');
+            } else {
+                crtOverlay.classList.replace('opacity-0', 'opacity-40');
+            }
+        });
+
+        document.getElementById('btnToggleAudio').addEventListener('click', () => {
+            const label = document.getElementById('audioLabel');
+            const icon = document.getElementById('audioIcon');
+
+            if (!isAudioPlaying) {
+                initLoFiSynth();
+                isAudioPlaying = true;
+                label.textContent = "Lo-Fi Ambient: On ☕";
+                label.classList.replace('text-lofi-muted', 'text-lofi-neon');
+                icon.classList.add('animate-vinyl', 'text-lofi-neon');
+                icon.classList.remove('text-lofi-muted');
+            } else {
+                stopLoFiSynth();
+                isAudioPlaying = false;
+                label.textContent = "Lo-Fi Ambient: Off";
+                label.classList.replace('text-lofi-neon', 'text-lofi-muted');
+                icon.classList.remove('animate-vinyl', 'text-lofi-neon');
+                icon.classList.add('text-lofi-muted');
+            }
+        });
+
+        function initLoFiSynth() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const bufferSize = audioContext.sampleRate * 2;
+            const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            let lastOut = 0.0;
+
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = output[i];
+                output[i] *= 3.5;
+            }
+
+            noiseNode = audioContext.createBufferSource();
+            noiseNode.buffer = noiseBuffer;
+            noiseNode.loop = true;
+
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(450, audioContext.currentTime);
+
+            gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+
+            noiseNode.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            noiseNode.start();
+        }
+
+        function stopLoFiSynth() {
+            if (noiseNode) {
+                try {
+                    noiseNode.stop();
+                    noiseNode.disconnect();
+                } catch(e){}
+            }
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            if (!apiKey) {
+                modalKey.classList.remove('hidden');
+                return;
+            }
+
+            appendUserMessage(message);
+            userInput.value = '';
+
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+
+            try {
+                const botReply = await callGeminiAPI(message);
+                typingIndicator.classList.add('hidden');
+                appendBotMessage(botReply);
+            } catch (err) {
+                typingIndicator.classList.add('hidden');
+                appendSystemMessage(`⚠️ Erro na resposta: ${err.message}`);
+            }
+        });
+
+        async function callGeminiAPI(userQuery) {
+            const model = "gemini-2.5-flash";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+            const contents = [
+                ...chatHistory,
+                { role: "user", parts: [{ text: userQuery }] }
+            ];
+
+            const payload = {
+                contents: contents,
+                systemInstruction: {
+                    parts: [{ text: buildSystemPrompt() }]
+                }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!replyText) {
+                throw new Error("O modelo não retornou texto válido.");
+            }
+
+            chatHistory.push({ role: "user", parts: [{ text: userQuery }] });
+            chatHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+            return replyText;
+        }
+
+        function appendUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex gap-3 items-start justify-end";
+            div.innerHTML = `
+                <div class="max-w-[88%] sm:max-w-[80%] rounded-2xl rounded-tr-none p-4 bg-lofi-panel border border-lofi-green/30 text-lofi-light text-sm shadow-xl">
+                    <div class="flex items-center justify-between border-b border-lofi-border/80 pb-1 mb-2">
+                        <span class="text-[10px] text-lofi-neon font-mono">você</span>
+                        <span class="text-[10px] text-lofi-muted font-mono">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <p class="leading-relaxed whitespace-pre-wrap font-sans">${escapeHTML(text)}</p>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-lofi-panel border border-lofi-border flex items-center justify-center text-lofi-light shrink-0 mt-1">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            lucide.createIcons();
+            scrollToBottom();
+        }
+
+        function appendBotMessage(markdownText) {
+            const div = document.createElement('div');
+            div.className = "flex gap-3 items-start";
+            const renderedHtml = marked.parse(markdownText);
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-xl bg-lofi-panel border border-lofi-green/50 flex items-center justify-center text-lofi-neon shrink-0 mt-1 box-glow">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                </div>
+                <div class="max-w-[88%] sm:max-w-[80%] rounded-2xl rounded-tl-none p-4 bg-lofi-bg border border-lofi-border text-lofi-light text-sm shadow-xl space-y-2 chat-content">
+                    <div class="flex items-center justify-between border-b border-lofi-border/60 pb-2 mb-2">
+                        <span class="font-pixel text-lg text-lofi-neon text-glow">MIDNIGHTCHAT AI</span>
+                        <span class="text-[10px] text-lofi-muted font-mono">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div>${renderedHtml}</div>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            lucide.createIcons();
+            scrollToBottom();
+        }
+
+        function appendSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex justify-center my-2";
+            div.innerHTML = `
+                <div class="px-3 py-1.5 rounded-lg bg-lofi-panel border border-lofi-border text-lofi-neon text-xs font-mono">
+                    ${escapeHTML(text)}
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // Copy Code Snippet Helper
+        window.copyCodeBlock = function(btn) {
+            const pre = btn.closest('.relative').querySelector('pre');
+            const code = pre.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-lofi-neon"></i> Copiado!`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    btn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copiar`;
+                    lucide.createIcons();
+                }, 2000);
+            });
+        };
+    </script>
+</body>
+</html>
