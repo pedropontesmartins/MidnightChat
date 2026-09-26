@@ -420,7 +420,7 @@
             </form>
             <div class="flex items-center justify-between px-2 pt-1.5 text-[11px] text-lofi-muted font-mono">
                 <span>Pressione <kbd class="px-1.5 py-0.5 rounded bg-lofi-panel border border-lofi-border text-lofi-light">Enter</kbd> para enviar</span>
-                <span>Powered by Gemini 2.5 Flash Engine</span>
+                <span>Powered by Gemini 3.8 Flash Engine</span>
             </div>
         </div>
 
@@ -676,7 +676,7 @@
             return `
 Você é a IA oficial do "MidnightChat".
 Sua Personalidade e Tom de Voz:
-1. EXTREMAMENTE bem-humorado, eufórico, animado, perspicaz e muito inteligente!
+1. EXTREMAMENTE bem-humorado, animado, perspicaz e muito inteligente!
 2. Você fala Português do Brasil natural, descontraído e elegante.
 3. Se perguntarem sobre VÍCIO EM CAFÉ, responda de forma comicamente dramática, dizendo que seu sistema roda 100% à base de café coado e caffeine.exe.
 4. Você é um GÊNIO didático: explica assuntos complexos (física quântica, engenharia de software, IA) de forma simples, leve e com ótimas analogias.
@@ -1072,7 +1072,7 @@ Sua Personalidade e Tom de Voz:
         });
 
         async function callGeminiAPI(userQuery) {
-            const model = "gemini-2.5-flash";
+            const model = "gemini-3.8-flash";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
             const contents = [
